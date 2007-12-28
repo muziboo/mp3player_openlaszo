@@ -1,4 +1,14 @@
-<canvas proxied="false" debug="true">
+<!-- MP3 player in OpenLaszlo. Please visit http://code.google.com/p/mp3playerinlaszlo/ for more details
+Features basic XSPF playlist support (loads images/generates a link to info url for tracks etc
+
+Author: Prateek Dayal
+Email : prateek@muziboo.com
+
+No warranties whatsoever. This player is quite basic right now and under development. If you find any bugs, 
+please do email. If you wish to help in the development, please do email :)
+-->
+
+<canvas proxied="false">
   <resource name="previous_btn" src="icons/previous_blue.png"/>	
   <resource name="play_btn" src="icons/play_blue.png"/>
   <resource name="pause_btn" src="icons/pause_blue.png"/>
@@ -6,18 +16,39 @@
   <resource name="next_btn" src="icons/next_blue.png"/>
   <resource name="sound_low" src="icons/sound_low.png"/>
   <resource name="sound_high" src="icons/sound_high.png"/>
+ 
+  <!-- User preference xml to set the color etc : optional --> 
+  <dataset name="user_pref" type="http" request="true"></dataset>
   
-  <dataset name="favorite_list" src="http://muziboo.com/playlists/favorite_1.xml" request="true"></dataset>  
+  <!-- Dataset for the playlist. Will be loaded based on a globarVar supplied by browser --> 
+  <dataset name="favorite_list" type="http" request="true"></dataset>  
+
+  <!-- This one always points to the currently playing track. It can be set either by play/next/previous 
+       button or by clicking on the playlist item -->
   <datapointer id="currenttrack" xpath="favorite_list:/playlist[1]"/>
 
   <script>
+    favorite_list.setAttribute('src',playlistUrl);     
+  </script>
+
+  <!-- All the player related functionality such as start/stop/pause etc -->
+  <script>
+
+  <!-- Every time a new file is loaded, volume is reset to 100%. This function can be called to fix it -->
+  function restoreVolume() {
+    mp3_player.setVolume(volume_slider.getValue());
+  }
+
 	function playTrack() {
     <![CDATA[
 		view_crnt_track.datapath.setPointer(currenttrack.p); 
 		mp3_player.setAttribute('resource',currenttrack.xpathQuery('location[1]/text()'));
 		author_pic.setAttribute('resource',currenttrack.xpathQuery('image[1]/text()'));
-    info_link.setText("<a href=\""+currenttrack.xpathQuery('info[1]/text()')+"\" target=\"_blank\">More Information</a>");
+    if(currenttrack.xpathQuery('info[1]/text()')){
+      info_link.setText("<a href=\""+currenttrack.xpathQuery('info[1]/text()')+"\" target=\"_blank\">More Information</a>");
+    }
 		main.setAttribute('title',currenttrack.xpathQuery('title[1]/text()'));
+    restoreVolume();
 	]]>
 		}
 
@@ -55,7 +86,8 @@
 			mp3_player.play();
 		}
 		}
-		
+	
+  <!-- Helper function to convert secs to mins for displaying the time elapsed and total time -->	
 	function sec2min(secs) {
 	<![CDATA[
 			    var s;
@@ -79,8 +111,9 @@
 	
   </script>      
       
-  	<window id="main" width="210" height="300" resizable="true">
-		
+  	<window id="main" width="210" height="300" resizable="true" title="Mp3player in Laszlo">
+	
+    <!-- Display the progress bar and other track information when playing a track -->	
 		<view id="track_info" height= "60">
 			
 			<view width="50" height="50" id="author_pic" play="true"/>  
@@ -90,11 +123,12 @@
   				<text fontsize="12" datapath="creator/text()"/>  		  		
   			</view>  			  			
   						
-  			<view x="55" y="${view_crnt_track.height + 10}"><text id="info_link" bgcolor="blue"></text></view>
+  			<view x="55" y="${view_crnt_track.height + 10}"><text id="info_link" bgcolor="0xBBBBFF"></text></view>
   		 </view>
   		  	
   		 <view id="background" y="${track_info.height+10}"  width="${parent.width}" >
   		 	         		 	
+        <!-- Progress Bar -->
   		 	<simplelayout axis="y" spacing="5"/>
             <view>
             	<simplelayout axis="x"/>
@@ -114,7 +148,7 @@
             				if(mp3_player.now_playing){
 	            				parent.play_loc_bar.setVisible(false);
             					var slidestop = ((parent.getMouse('x') / parent.width) * mp3_player.total_time);	
-								mp3_player.play(slidestop*30);
+								      mp3_player.play(slidestop*30);
             				}
         	    		</method>    	
     	        	</basebutton>
@@ -148,6 +182,7 @@
               
         </view>
   		
+      <!-- The view for the actual playlist -->
   		<view y="${background.y + 55}" width="${main.width-20}" height="${main.height-170}">
   			<view clip="true">  			
   			<view>  				
@@ -156,6 +191,7 @@
   				<text width="${main.width-20}" name="trackname" datapath="title/text()" onmouseover="this.setBGColor(0xBBBBFF)"
   					  						  onmouseout="this.setBGColor(null)" >
   					<handler name="onclick">  	
+              <!-- Set the currenttrack xpointer to point to this track on a click -->
   						currenttrack.setPointer(this.parent.datapath.p);	
   						playTrack();
   					</handler>
@@ -166,17 +202,16 @@
   		</view>  	
   		
   		
-  		<view id="mp3_player" name="mp3_file">
+  		<view id="mp3_player" name="mp3_file" play="true">
   			<attribute name="now_playing" value="false"/>  	
+        <!-- This helps us in estimating the total time and then in moving the progress bar -->
+        
   			<attribute name="total_time" value="${this.getTotalTime()/this.loadratio}"/>		
   			<handler name="onlastframe">
   				nextTrack();
   			</handler>
   			<handler name="onplay">
   				this.setAttribute('now_playing',true);  				  				
-  			</handler>
-  			<handler name="onloadperc">
-  				current_time.setAttribute('text',sec2min(mp3_player.getCurrentTime()));  				
   			</handler>
   			<handler name="onresource">
   				this.setAttribute('now_playing',true);  				
