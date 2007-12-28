@@ -1,0 +1,193 @@
+<canvas proxied="false" debug="true">
+  <resource name="previous_btn" src="icons/previous_blue.png"/>	
+  <resource name="play_btn" src="icons/play_blue.png"/>
+  <resource name="pause_btn" src="icons/pause_blue.png"/>
+  <resource name="stop_btn" src="icons/stop_blue.png"/>
+  <resource name="next_btn" src="icons/next_blue.png"/>
+  <resource name="sound_low" src="icons/sound_low.png"/>
+  <resource name="sound_high" src="icons/sound_high.png"/>
+  
+  <dataset name="favorite_list" src="http://muziboo.com/playlists/favorite_1.xml" request="true"></dataset>  
+  <datapointer id="currenttrack" xpath="favorite_list:/playlist[1]"/>
+
+  <script>
+	function playTrack() {
+    <![CDATA[
+		view_crnt_track.datapath.setPointer(currenttrack.p); 
+		mp3_player.setAttribute('resource',currenttrack.xpathQuery('location[1]/text()'));
+		author_pic.setAttribute('resource',currenttrack.xpathQuery('image[1]/text()'));
+    info_link.setText("<a href=\""+currenttrack.xpathQuery('info[1]/text()')+"\" target=\"_blank\">More Information</a>");
+		main.setAttribute('title',currenttrack.xpathQuery('title[1]/text()'));
+	]]>
+		}
+
+	function nextTrack() {
+		if(currenttrack.selectNext()){
+			playTrack();
+		}
+	}
+	
+	function previousTrack() {
+		if(currenttrack.selectPrev()){
+			playTrack();
+		}
+	}
+	
+	function stopTrack() {
+		mp3_player.stop(0);		
+		playbar.setX(0);		
+	}	
+		
+	function pauseTrack() {
+		mp3_player.stop(mp3_player.frame);
+	}	
+	
+	function pauseTrack() {
+		mp3_player.stop(mp3_player.frame);		
+	}	
+	
+	function playBtnTrack() {
+		if(currenttrack.getNodeName()=='track'){			
+			mp3_player.play();
+		}else{
+			currenttrack.setXPath('trackList[1]/track[1]/');
+			playTrack();
+			mp3_player.play();
+		}
+		}
+		
+	function sec2min(secs) {
+	<![CDATA[
+			    var s;
+			    if(secs > 60){
+				var min = Math.floor(secs / 60);
+				s = min < 10 ? "0" : "";
+				s += min +":";
+				secs = secs - min * 60;
+			    } else {
+				s = "00:";
+			    }
+
+			    if(secs < 10){
+				s+= "0" + Math.floor(secs);
+			    } else {
+				s += Math.floor(secs);
+			    }
+				return s;
+	]]>
+		}
+	
+  </script>      
+      
+  	<window id="main" width="210" height="300" resizable="true">
+		
+		<view id="track_info" height= "60">
+			
+			<view width="50" height="50" id="author_pic" play="true"/>  
+			
+  			<view x="55" id="view_crnt_track" visible="true">
+  				<datapath/>
+  				<text fontsize="12" datapath="creator/text()"/>  		  		
+  			</view>  			  			
+  						
+  			<view x="55" y="${view_crnt_track.height + 10}"><text id="info_link" bgcolor="blue"></text></view>
+  		 </view>
+  		  	
+  		 <view id="background" y="${track_info.height+10}"  width="${parent.width}" >
+  		 	         		 	
+  		 	<simplelayout axis="y" spacing="5"/>
+            <view>
+            	<simplelayout axis="x"/>
+           		<view><text id="current_time" text="${sec2min(mp3_player.getCurrentTime())}"/></view>
+            
+            	<view y="3" width="120" resource="icons/audio_scrubtrack.png" name="slider-stuff">   
+            		<view name="loadbar" bgcolor="0x999999" height="100%" width="${mp3_player.loadratio*(parent.width)}" opacity=".5"/>            
+          
+            		<basebutton id="playbar" resource="icons/audio_scrubber.png" y="1"
+            					x="${(parseInt(parent.width * mp3_player.getCurrentTime())/mp3_player.total_time) > (parent.width - this.width) ? (parent.width - this.width) : parseInt(parent.width * mp3_player.getCurrentTime()/mp3_player.total_time)}">
+            			<method event="onmousedown">
+							if(mp3_player.now_playing){								
+								parent.play_loc_bar.setVisible(true);									
+							}
+            			</method>        
+            			<method event="onmouseup">
+            				if(mp3_player.now_playing){
+	            				parent.play_loc_bar.setVisible(false);
+            					var slidestop = ((parent.getMouse('x') / parent.width) * mp3_player.total_time);	
+								mp3_player.play(slidestop*30);
+            				}
+        	    		</method>    	
+    	        	</basebutton>
+	          
+            		<basebutton name="play_loc_bar" width="10" resource="icons/audio_scrubber.png" opacity=".5" visible="false"
+            					x="${(0 > this.mouseVal ? 0 : (this.mouseVal > mp3_player.loadratio*(parent.width) ? parseInt(mp3_player.loadratio*parent.width/.8) : (this.mouseVal > (parent.width - this.width) ? (parent.width - this.width) : this.mouseVal)))}">
+            			<attribute name="mouseVal" value="${(parent.getMouse('x') - (this.width / 2))}" />
+            		</basebutton>
+            	</view>
+            
+            	<view x="200"><text text="${mp3_player.loadratio > 0 ? sec2min(mp3_player.total_time): '00:00'}"/></view>
+        	</view>    
+		
+            
+            <view x="5" id="button_panel" y="20">       
+            	<simplelayout axis="x" spacing="5"/>
+            	<basebutton resource="previous_btn" onclick="previousTrack()"/>
+            	<basebutton resource="play_btn" onclick="playBtnTrack()"/>
+            	<basebutton resource="pause_btn" onclick="pauseTrack()"/>
+            	<basebutton resource="stop_btn" onclick="stopTrack()"/>
+            	<basebutton resource="next_btn" onclick="nextTrack()"/>      
+            	<view resource="sound_low"/>
+            	<slider y="4" id="volume_slider" thumbheight="0" thumbwidth="0" width="50" oninit="this.setValue(mp3_player.getVolume())" showvalue="false" showrange="false">
+            		<handler name="onclick">
+            			var slider_val = Math.floor((this.getMouse('x')/this.width)*100)
+            			mp3_player.setVolume(slider_val);
+            			this.setValue(slider_val);
+            		</handler>
+            	</slider>  	
+            </view>                  
+              
+        </view>
+  		
+  		<view y="${background.y + 55}" width="${main.width-20}" height="${main.height-170}">
+  			<view clip="true">  			
+  			<view>  				
+  				<datapath xpath="favorite_list:/playlist[1]/trackList[1]/track" replication="lazy"/>
+  				<view bgcolor="0xBBBBFF" height="${parent.trackname.height}" width="${main.width}" visible="${this.parent.datapath.p==currenttrack.p}"/>  	  						
+  				<text width="${main.width-20}" name="trackname" datapath="title/text()" onmouseover="this.setBGColor(0xBBBBFF)"
+  					  						  onmouseout="this.setBGColor(null)" >
+  					<handler name="onclick">  	
+  						currenttrack.setPointer(this.parent.datapath.p);	
+  						playTrack();
+  					</handler>
+  				</text>  		  				  				  				 		  				  				
+  			</view>
+  			</view>
+  			<vscrollbar bgcolor="0x999999" usemousewheel="true"/>  			
+  		</view>  	
+  		
+  		
+  		<view id="mp3_player" name="mp3_file">
+  			<attribute name="now_playing" value="false"/>  	
+  			<attribute name="total_time" value="${this.getTotalTime()/this.loadratio}"/>		
+  			<handler name="onlastframe">
+  				nextTrack();
+  			</handler>
+  			<handler name="onplay">
+  				this.setAttribute('now_playing',true);  				  				
+  			</handler>
+  			<handler name="onloadperc">
+  				current_time.setAttribute('text',sec2min(mp3_player.getCurrentTime()));  				
+  			</handler>
+  			<handler name="onresource">
+  				this.setAttribute('now_playing',true);  				
+  			</handler>
+  			<handler name="onstop">
+  				this.setAttribute('now_playing',false)  				
+  			</handler>
+        <handler name="ontimeout">
+          nextTrack();
+        </handler>
+  		</view>  		 
+  		  		  		
+  	</window>
+</canvas>
