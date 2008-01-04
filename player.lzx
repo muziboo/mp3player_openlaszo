@@ -56,20 +56,21 @@ Total time displayed during song load (when song is not in cache) is off by a fe
       <!-- Play next track when the song gets over -->
   		<handler name="onlastframe">
         this.setAttribute('now_playing',false)
-  			canvas.nextTrack();
+  			nextTrack();
   		</handler>
 
       <handler name="onplay">
-  		  this.setAttribute('now_playing',true);  				  				        
-        Debug.write('onplay');
+        this.setAttribute('now_playing',true);
+        this.setVolume(volume_slider.value);
+        Debug.write('setting volume');
   		</handler>
 
+      <!-- This handler is to make sure that during loading all timers etc move properly -->
       <handler name="onloadperc" args="p">      
-        Debug.write('onloadperc');
         <![CDATA[
-        if(!this.now_playing && !this.paused){
+        if(p==0 || this.now_playing == false){
           this.play();
-          this.setAttribute('now_playing',true);
+          this.setVolume(Math.floor((volume_slider.getMouse('x')/volume_slider.width)*100));
           Debug.write('Setting now_playing for the first time and calling play()');
         }
         total_time_counter.setText(Math.floor(p*100)+'%');
@@ -128,7 +129,7 @@ Total time displayed during song load (when song is not in cache) is off by a fe
             	<simplelayout axis="x"/>
            		<view><text id="current_time_counter">00:00</text></view>
             
-            	<view y="3" resource="scrub_track" name="scrub_track">   
+            	<view y="3" resource="scrub_track" name="scrub_track">                   
             		<view name="loadbar" bgcolor="${classroot.load_progress_color}" height="100%" width="${classroot.loadratio*(parent.width)}" opacity=".5"/>            
           
             		<basebutton id="playbar" resource="scrubber" y="1"
