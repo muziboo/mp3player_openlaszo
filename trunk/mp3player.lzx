@@ -8,7 +8,7 @@ No warranties whatsoever. This player is quite basic right now and under develop
 please do email. If you wish to help in the development, please do email :)
 -->
 
-<canvas proxied="false" debug="true">
+<canvas proxied="false">
 
   <!-- The MP3 player class -->
   <include href="player.lzx"/>
