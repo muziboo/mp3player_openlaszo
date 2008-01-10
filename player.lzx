@@ -84,8 +84,8 @@ Total time displayed during song load (when song is not in cache) is off by a fe
   		</handler>
 
       <handler name="onload">
-        total_time_counter.setText(sec2min(mp3player.getTotalTime()));
-        Debug.write(sec2min(mp3player.getTotalTime()));
+        total_time_counter.setText(sec2min(this.getTotalTime()));
+        Debug.write(sec2min(this.getTotalTime()));
       </handler>
       
       <handler name="ontimeout">
