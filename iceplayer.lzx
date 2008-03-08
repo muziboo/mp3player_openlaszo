@@ -1,0 +1,98 @@
+<canvas debug="true" proxied="false">
+
+  <resource name="play_btn" src="icons/play_blue.png"/>
+  <resource name="pause_btn" src="icons/pause_blue.png"/>
+  <resource name="stop_btn" src="icons/stop_blue.png"/>
+
+
+  <script>
+   <![CDATA[
+
+    function startRadio(){
+      player.setResource(currentchannel.xpathQuery('url/text()'));
+      setChannelDetails();
+    }
+
+    function setChannelDetails(){
+      channel_info.title.setText(currentchannel.xpathQuery('title/text()'));   
+      channel_info.currently_playing.setText(currentchannel.xpathQuery('currently_playing/text()'));
+    }
+
+    function sec2min(secs){
+			    var s;
+			    if(secs > 60){
+				var min = Math.floor(secs / 60);
+				s = min < 10 ? "0" : "";
+				s += min +":";
+				secs = secs - min * 60;
+			    } else {
+				s = "00:";
+			    }
+
+			    if(secs < 10){
+				s+= "0" + Math.floor(secs);
+			    } else {
+				s += Math.floor(secs);
+			    }
+				return s;
+	}
+	]]>
+
+
+  </script>
+
+  <dataset name="radio_list" src="http://muziboo.com/radio.xml" request="true"/>
+  <datapointer id="currentchannel" datapath="radio_list:/channels/channel[1]" rerunxpath="true">
+    <handler name="ondata">
+      setChannelDetails();
+    </handler>
+  </datapointer>
+
+  <view id="player">
+    <handler name="oninit">
+      updateStatusStuff();
+    </handler>
+    <method name="updateStatusStuff">
+      this.del = new LzDelegate(this, "updateStatusStuff");
+      LzTimer.addTimer(this.del, 5000); 
+      radio_list.doRequest();
+    </method>
+  </view>
+
+  <view id="channel_info">
+    <simplelayout axis="y"/>
+    <text name="title"/>
+    <text name="currently_playing"/>  
+  </view>
+
+  <view id="controls" y="${channel_info.y + channel_info.height + 10}">
+   <simplelayout axis="x"/>
+   <basebutton resource="play_btn" onclick="classroot.playTrack()" />
+   <basebutton resource="pause_btn" onclick="classroot.pauseTrack()" />
+   <basebutton resource="stop_btn" onclick="classroot.stopTrack()" />
+
+   <slider id="volume_slider" thumbheight="0" thumbwidth="0" width="50" oninit="this.setValue(player.getVolume())" showvalue="false" showrange="false">
+            		<handler name="onclick">
+            			var slider_val = Math.floor((this.getMouse('x')/this.width)*100)
+            			player.setVolume(slider_val);
+            			this.setValue(slider_val);
+            		</handler>
+    </slider>
+
+  </view>
+
+  <simplelayout axis="y" spacing="10"/>
+  <view y="${controls.y + controls.height + 10}" id="list" datapath="radio_list:/channels[0]/channel">
+    <view onmouseover="this.setBGColor(0xBBBBFF)"
+  					  						  onmouseout="this.setBGColor(null)" >
+      <simplelayout axis="y"/>
+      <text datapath="title/text()"/>
+      <text datapath="currently_playing/text()"/>
+      <handler name="onclick">  	
+        <!-- Set the currentchannel xpointer to point to this track on a click -->
+  			currentchannel.setXPath("radio_list:/channels[0]/channel["+this.parent.datapath.getNodeOffset()+"]");	
+  		  startRadio();
+  		</handler>
+    </view>
+  </view>
+</canvas>
