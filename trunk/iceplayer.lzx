@@ -3,7 +3,9 @@
   <resource name="play_btn" src="icons/play_blue.png"/>
   <resource name="pause_btn" src="icons/pause_blue.png"/>
   <resource name="stop_btn" src="icons/stop_blue.png"/>
-
+  <resource name="background" src="icons/radio.jpg"/>
+  <resource name="sound_low" src="icons/sound_low.png"/>
+  <resource name="logo" src="icons/logo_orange.jpg"/>
 
   <script>
    <![CDATA[
@@ -11,6 +13,17 @@
     function startRadio(){
       player.setResource(currentchannel.xpathQuery('url/text()'));
       setChannelDetails();
+      stopBtn.setVisible(true);
+      channel_info.url.setVisible(true);
+    }
+
+    function stopTrack(){
+      player.setResource('');
+      channel_info.currently_playing.setText('Pick a channel from the list');
+      channel_info.title.setText('Independent Music Radio');
+      currentchannel.setAttribute('p',null);
+      stopBtn.setVisible(false);
+      channel_info.url.setVisible(false);
     }
 
     function setChannelDetails(){
@@ -44,14 +57,26 @@
   <dataset name="radio_list" src="http://muziboo.com/radio.xml" request="true"/>
   <datapointer id="currentchannel" datapath="radio_list:/channels/channel[1]" rerunxpath="true">
     <handler name="ondata">
-      setChannelDetails();
+      if(currentchannel.p != null){
+        setChannelDetails();
+      }
+      loading_playlist.setVisible(false);
     </handler>
   </datapointer>
 
+  <view width="180" height="300" resource="background">
   <view id="player">
+    <handler name="onresource">
+      updateTimer();
+    </handler>
     <handler name="oninit">
       updateStatusStuff();
     </handler>
+    <method name="updateTimer">
+      this.deltimer = new LzDelegate(this, "updateTimer");
+      LzTimer.addTimer(this.deltimer, 1000);
+      channel_info.time_elapsed.setText(sec2min(player.getCurrentTime()));
+    </method>
     <method name="updateStatusStuff">
       this.del = new LzDelegate(this, "updateStatusStuff");
       LzTimer.addTimer(this.del, 5000); 
@@ -59,19 +84,23 @@
     </method>
   </view>
 
-  <view id="channel_info">
-    <simplelayout axis="y"/>
-    <text name="title"/>
-    <text name="currently_playing"/>  
+  <view y="10" x="10" width="160" id="channel_info" clip="true">
+    <text fontstyle="bold" name="currently_playing">Pick a channel from the list</text>  
+    <text y="15" name="title">Independent Music Radio</text>
+    <text y="70" name="time_elapsed"/>
+    <text x="90" y="40" name="url" visible="false">Visit Song
+      <handler name="onclick">
+        LzBrowser.loadURL(currentchannel.xpathQuery('song_url/text()')+'?src=radio','_blank');
+  
+      </handler>
+    </text>
   </view>
 
-  <view id="controls" y="${channel_info.y + channel_info.height + 10}">
-   <simplelayout axis="x"/>
-   <basebutton resource="play_btn" onclick="classroot.playTrack()" />
-   <basebutton resource="pause_btn" onclick="classroot.pauseTrack()" />
-   <basebutton resource="stop_btn" onclick="classroot.stopTrack()" />
+  <view x="10" y="100" id="controls">
+   <basebutton id="stopBtn" resource="stop_btn" onclick="stopTrack()" visible="false"/>
 
-   <slider id="volume_slider" thumbheight="0" thumbwidth="0" width="50" oninit="this.setValue(player.getVolume())" showvalue="false" showrange="false">
+   <view x="60" resource="sound_low"/>
+   <slider x="75" y="5" id="volume_slider" thumbheight="0" thumbwidth="0" width="50" oninit="this.setValue(player.getVolume())" showvalue="false" showrange="false">
             		<handler name="onclick">
             			var slider_val = Math.floor((this.getMouse('x')/this.width)*100)
             			player.setVolume(slider_val);
@@ -81,12 +110,13 @@
 
   </view>
 
-  <simplelayout axis="y" spacing="10"/>
-  <view y="${controls.y + controls.height + 10}" id="list" datapath="radio_list:/channels[0]/channel">
-    <view onmouseover="this.setBGColor(0xBBBBFF)"
-  					  						  onmouseout="this.setBGColor(null)" >
+  <view x="10" y="120" width="160" clip="true">
+  <text x="20" y="150" id="loading_playlist" fontstyle="bold">Loading Channels ... </text>
+  <simplelayout axis="y" spacing="7"/>
+  <view id="list" datapath="radio_list:/channels[0]/channel">
+    <view onmouseover="this.setBGColor(0xBBBBFF)" onmouseout="this.setBGColor(null)">
       <simplelayout axis="y"/>
-      <text datapath="title/text()"/>
+      <text fontstyle="bold" datapath="title/text()"/>
       <text datapath="currently_playing/text()"/>
       <handler name="onclick">  	
         <!-- Set the currentchannel xpointer to point to this track on a click -->
@@ -95,4 +125,9 @@
   		</handler>
     </view>
   </view>
+  </view>
+
+  <view x="30" y="250" resource="logo" onclick="LzBrowser.loadURL('http://muziboo.com/?src=radio','_blank')"/>
+
+</view>
 </canvas>
