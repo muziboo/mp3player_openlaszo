@@ -1,6 +1,9 @@
-<canvas debug="true" proxied="false">
+<canvas proxied="false">
+
+  <include href="extensions/html.lzx"/>
 
   <resource name="play_btn" src="icons/play_blue.png"/>
+  <resource name="save_this" src="icons/save_this.jpg"/>
   <resource name="pause_btn" src="icons/pause_blue.png"/>
   <resource name="stop_btn" src="icons/stop_blue.png"/>
   <resource name="background" src="icons/radio.jpg"/>
@@ -65,6 +68,17 @@
   </datapointer>
 
   <view width="180" height="300" resource="background">
+  <html id="htmlview" heightoffset="-2" widthoffset="-2" xoffset="2" yoffset="10">
+    <handler name="onload">
+      close_gigya.setText('Close This');
+    </handler>
+  </html>
+  <text id="close_gigya" x="50" y="-5" visible="false" bgcolor="white"> Close This 
+    <handler name="onclick">
+      htmlview.setAttribute('visible','false');
+      close_gigya.setVisible(false);
+    </handler>
+  </text>
   <view id="player">
     <handler name="onresource">
       updateTimer();
@@ -98,6 +112,14 @@
         LzBrowser.loadURL(currentchannel.xpathQuery('song_url/text()')+'?src=radio','_blank');
       </handler>
     </text>
+    <view x="85" y="65" name="embed_btn" resource="save_this">
+      <handler name="onclick">
+        htmlview.setAttribute('src', 'http://muziboo.com/widget/radio_embed');
+        htmlview.setAttribute('visible', true);
+        close_gigya.setVisible(true);
+        close_gigya.setText('Loading ...');
+      </handler>
+    </view>
   </view>
 
   <view x="10" y="100" id="controls">
