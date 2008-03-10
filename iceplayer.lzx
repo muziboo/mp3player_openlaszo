@@ -28,7 +28,7 @@
 
     function setChannelDetails(){
       channel_info.title.setText(currentchannel.xpathQuery('title/text()'));   
-      channel_info.currently_playing.setText(currentchannel.xpathQuery('currently_playing/text()'));
+      channel_info.currently_playing.setText(currentchannel.xpathQuery('currently_playing/text()') + + ' ** Get your music online at www.Muziboo.com **       ');
     }
 
     function sec2min(secs){
@@ -85,13 +85,17 @@
   </view>
 
   <view y="10" x="10" width="160" id="channel_info" clip="true">
-    <text fontstyle="bold" name="currently_playing">Pick a channel from the list</text>  
+    <text fontstyle="bold" name="currently_playing">Pick a channel from the list
+    <animatorgroup name="outeranimatorgroup" process="sequential" start="true">
+      <animator attribute="x" from="0" to="${160-this.parent.parent.width}" motion="linear" duration="10000" indirect="true" repeat="Infinity"/>
+      <animator attribute="x" from="160" to="${160-this.parent.parent.width}" motion="linear" duration="10000" indirect="true" repeat="Infinity" relative="true"/>
+    </animatorgroup>
+    </text>  
     <text y="15" name="title">Independent Music Radio</text>
     <text y="70" name="time_elapsed"/>
     <text x="90" y="40" name="url" visible="false">Visit Song
       <handler name="onclick">
         LzBrowser.loadURL(currentchannel.xpathQuery('song_url/text()')+'?src=radio','_blank');
-  
       </handler>
     </text>
   </view>
