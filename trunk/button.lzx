@@ -1,0 +1,44 @@
+<canvas proxied="false" debug="false" medialoadtimeout="180000">
+
+  <resource name="play_btn" src="icons/play_blue.png"/>
+  <resource name="pause_btn" src="icons/pause_blue.png"/>
+
+  <script>
+    function playTrack() {
+      if (!mp3player.now_playing) {
+        mp3player.setResource(mp3FileUrl);
+        mp3CallBack.setResource("http://muziboo.com/song/played/"+mp3SongId+"?state=start");
+        mp3player.setAttribute('now_playing', true);
+      }else{
+        mp3player.play();
+        mp3player.setAttribute('now_paused', false);
+      }
+      pauseBtn.setVisible(true);
+      playBtn.setVisible(false);
+    }
+  
+    function pauseTrack() {      
+      mp3player.stop(mp3player.frame); 
+      mp3player.setAttribute('now_paused', true);
+      playBtn.setVisible(true);
+      pauseBtn.setVisible(false);
+    }
+
+  </script>
+  
+
+  <!-- the url to mp3 file will be mp3FileUrl -->
+  <view id="mp3CallBack"/>
+  <view id="mp3player"> 
+    <attribute name="now_playing" value="false"/>
+    <attribute name="now_paused" value="false"/>
+    <handler name="onlastframe">      
+      this.setAttribute('now_playing',false);
+      pauseBtn.setVisible('false');
+      playBtn.setVisible('true');
+    </handler>
+  </view>
+  <basebutton id="playBtn" resource="play_btn" onclick="playTrack()" />
+  <basebutton id="pauseBtn" resource="pause_btn" onclick="pauseTrack()" visible="false"/>
+
+</canvas>
