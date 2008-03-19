@@ -52,6 +52,7 @@
 			    }
 				return s;
 	}
+
 	]]>
 
 
@@ -67,12 +68,7 @@
     </handler>
   </datapointer>
 
-  <view width="180" height="300" resource="background">
-  <html id="htmlview" heightoffset="-2" widthoffset="-2" xoffset="2" yoffset="10">
-    <handler name="onload">
-      close_gigya.setText('Close This');
-    </handler>
-  </html>
+  <view id="radio" width="180" height="300" resource="background">
   <text id="close_gigya" x="50" y="-5" visible="false" bgcolor="white"> Close This 
     <handler name="onclick">
       htmlview.setAttribute('visible','false');
@@ -114,10 +110,15 @@
     </text>
     <view x="85" y="65" name="embed_btn" resource="save_this">
       <handler name="onclick">
-        htmlview.setAttribute('src', 'http://muziboo.com/widget/radio_embed');
+        if (false){
+        htmlview.setSrc('http://muziboo.com/widget/radio_embed');
         htmlview.setAttribute('visible', true);
+        Debug.write('Loading Iframe');
         close_gigya.setVisible(true);
-        close_gigya.setText('Loading ...');
+        close_gigya.setText('Loading ...');}
+        else{
+          LzBrowser.loadURL('http://muziboo.com/widget/radio_embed','_blank')
+        }
       </handler>
     </view>
   </view>
@@ -142,7 +143,9 @@
   <view id="list" datapath="radio_list:/channels[0]/channel">
     <view onmouseover="this.setBGColor(0xBBBBFF)" onmouseout="this.setBGColor(null)">
       <simplelayout axis="y"/>
-      <text fontstyle="bold" datapath="title/text()"/>
+      <view>
+      <view resource="play_btn" visible="${currentchannel.p == null}"/><text x="18" fontstyle="bold" datapath="title/text()"/>
+      </view>
       <text datapath="currently_playing/text()"/>
       <handler name="onclick">  	
         <!-- Set the currentchannel xpointer to point to this track on a click -->
